@@ -16,9 +16,9 @@ use crate::{BigEndian, Endianness, LittleEndian, Serialize};
 	use endio::LEWrite;
 
 	let mut writer = vec![];
-	writer.write(42u8);
-	writer.write(true);
-	writer.write(754187983u32);
+	writer.ewrite(42u8);
+	writer.ewrite(true);
+	writer.ewrite(754187983u32);
 
 	assert_eq!(writer, b"\x2a\x01\xcf\xfe\xf3\x2c");
 	```
@@ -29,7 +29,7 @@ pub trait EWrite<E: Endianness>: Sized {
 
 		What's actually written is up to the implementation of the `Serialize`.
 	*/
-	fn write   <S: Serialize<E,            Self>>(&mut self, ser: S) -> Res<()> { ser.serialize(self) }
+	fn ewrite   <S: Serialize<E,            Self>>(&mut self, ser: S) -> Res<()> { ser.serialize(self) }
 	/// Writes in forced big endian.
 	fn write_be<S: Serialize<BigEndian,    Self>>(&mut self, ser: S) -> Res<()> { ser.serialize(self) }
 	/// Writes in forced little endian.
@@ -44,7 +44,7 @@ pub trait EWrite<E: Endianness>: Sized {
 	This exists solely to make `use` notation work. See `EWrite` for documentation.
 */
 pub trait BEWrite: Sized {
-	fn write   <S: Serialize<BigEndian,    Self>>(&mut self, ser: S) -> Res<()> { ser.serialize(self) }
+	fn ewrite   <S: Serialize<BigEndian,    Self>>(&mut self, ser: S) -> Res<()> { ser.serialize(self) }
 	fn write_be<S: Serialize<BigEndian,    Self>>(&mut self, ser: S) -> Res<()> { ser.serialize(self) }
 	fn write_le<S: Serialize<LittleEndian, Self>>(&mut self, ser: S) -> Res<()> { ser.serialize(self) }
 }
@@ -57,7 +57,7 @@ pub trait BEWrite: Sized {
 	This exists solely to make `use` notation work. See `EWrite` for documentation.
 */
 pub trait LEWrite: Sized {
-	fn write   <S: Serialize<LittleEndian, Self>>(&mut self, ser: S) -> Res<()> { ser.serialize(self) }
+	fn ewrite   <S: Serialize<LittleEndian, Self>>(&mut self, ser: S) -> Res<()> { ser.serialize(self) }
 	fn write_be<S: Serialize<BigEndian,    Self>>(&mut self, ser: S) -> Res<()> { ser.serialize(self) }
 	fn write_le<S: Serialize<LittleEndian, Self>>(&mut self, ser: S) -> Res<()> { ser.serialize(self) }
 }

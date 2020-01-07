@@ -61,8 +61,8 @@
 	// Works with any object implementing std::io::Read.
 	let mut reader = &b"\x2a\x01\x2c\xf3\xfe\xcf"[..];
 
-	let a: u8   = reader.read().unwrap();     // Reads in little endian (specified by trait).
-	let b: bool = reader.read().unwrap();     // Deserialization code is automatically inferred.
+	let a: u8   = reader.eread().unwrap();     // Reads in little endian (specified by trait).
+	let b: bool = reader.eread().unwrap();     // Deserialization code is automatically inferred.
 	let c: u32  = reader.read_be().unwrap();  // Reads in forced big endian.
 
 	// The results are already converted into the appropriate types and ready for use.
@@ -80,8 +80,8 @@
 	// Vec implements std::io::Write.
 	let mut writer = vec![];
 
-	writer.write(42u8);          // Directly specifying values works fine.
-	writer.write(true);          // Everything is automatically converted to bytes.
+	writer.ewrite(42u8);          // Directly specifying values works fine.
+	writer.ewrite(true);          // Everything is automatically converted to bytes.
 	writer.write_le(754187983);  // The trait endianness can be overwritten if necessary.
 
 	// Done!

@@ -16,9 +16,9 @@ use crate::{BigEndian, Deserialize, Endianness, LittleEndian};
 	use endio::LERead;
 
 	let mut reader = &b"\x2a\x01\xcf\xfe\xf3\x2c"[..];
-	let a: u8 = reader.read().unwrap();
-	let b: bool = reader.read().unwrap();
-	let c: u32 = reader.read().unwrap();
+	let a: u8 = reader.eread().unwrap();
+	let b: bool = reader.eread().unwrap();
+	let c: u32 = reader.eread().unwrap();
 	assert_eq!(a, 42);
 	assert_eq!(b, true);
 	assert_eq!(c, 754187983);
@@ -30,7 +30,7 @@ pub trait ERead<E: Endianness>: Sized {
 
 		What's actually read is up to the implementation of the `Deserialize`.
 	*/
-	fn read   <D: Deserialize<E,            Self>>(&mut self) -> Res<D> { D::deserialize(self) }
+	fn eread   <D: Deserialize<E,            Self>>(&mut self) -> Res<D> { D::deserialize(self) }
 	/// Reads in forced big endian.
 	fn read_be<D: Deserialize<BigEndian,    Self>>(&mut self) -> Res<D> { D::deserialize(self) }
 	/// Reads in forced little endian.
@@ -45,7 +45,7 @@ pub trait ERead<E: Endianness>: Sized {
 	This exists solely to make `use` notation work. See `ERead` for documentation.
 */
 pub trait BERead: Sized {
-	fn read   <D: Deserialize<BigEndian,    Self>>(&mut self) -> Res<D> { D::deserialize(self) }
+	fn eread   <D: Deserialize<BigEndian,    Self>>(&mut self) -> Res<D> { D::deserialize(self) }
 	fn read_be<D: Deserialize<BigEndian,    Self>>(&mut self) -> Res<D> { D::deserialize(self) }
 	fn read_le<D: Deserialize<LittleEndian, Self>>(&mut self) -> Res<D> { D::deserialize(self) }
 }
@@ -58,7 +58,7 @@ pub trait BERead: Sized {
 	This exists solely to make `use` notation work. See `ERead` for documentation.
 */
 pub trait LERead: Sized {
-	fn read   <D: Deserialize<LittleEndian, Self>>(&mut self) -> Res<D> { D::deserialize(self) }
+	fn eread   <D: Deserialize<LittleEndian, Self>>(&mut self) -> Res<D> { D::deserialize(self) }
 	fn read_be<D: Deserialize<BigEndian,    Self>>(&mut self) -> Res<D> { D::deserialize(self) }
 	fn read_le<D: Deserialize<LittleEndian, Self>>(&mut self) -> Res<D> { D::deserialize(self) }
 }

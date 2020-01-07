@@ -6,11 +6,11 @@
 `std::io::{Read, Write}` only allow reading and writing of raw bytes. This can be cumbersome when trying to read/write data, e.g. integers, as they have to be converted from/to bytes first.
 This crate allows direct reading/writing of data types, making this as easy as
 
-`let value: u8 = reader.read()?;`
+`let value: u8 = reader.eread()?;`
 
 and
 
-`writer.write(42u8);`.
+`writer.ewrite(42u8);`.
 
 ### Per-object endianness specification
 
@@ -34,7 +34,7 @@ I haven't yet done any serious benchmarks, or checked the disassembly of all typ
 
 ### Extensibility: Reading & writing your own types
 
-You can take advantage of this crate's features and the `read`/`write` methods by implementing this crate's traits for your own types. No distinction is made between user types and types for which (de-)serialization is already provided by this crate, and you will be able to use `read` and `write` for your own types just like for primitive types.
+You can take advantage of this crate's features and the `eread`/`ewrite` methods by implementing this crate's traits for your own types. No distinction is made between user types and types for which (de-)serialization is already provided by this crate, and you will be able to use `eread` and `ewrite` for your own types just like for primitive types.
 
 You can write (de-)serializations that differ depending on endianness, or (de-)serializations that don't differentiate and instead use the automatic endian inference of this crate to delegate endian differentiation to sub-structs.
 
@@ -44,7 +44,7 @@ You're not limited to `std::io::{Read, Write}` or this crate's abstractions when
 
 If you were using raw `std::io::{Read, Write}` with manual (de-)serialization code before, or a crate providing abstractions on top of `{Read, Write}`, the migration towards using this crate is extremely straightforward. Simply swap out the std::io traits with the endian-specific traits from this crate, and you'll have access to the direct read/write methods. You don't need to write any extra code, everything that implements `std::io::Read` or `std::io::Write` will automatically implement the endian-specific traits.
 
-(De-)serializations for Rust's primitive types are already implemented, if it makes sense to implement them. For example, `isize` and `usize` aren't implemented, since they are inherently variable-sized and therefore can't have a portable byte representation. However, the other integral and floating point types are implemented, and if you just want to read/write some simple primitive types, using the `read`/`write` methods will Just Work™.
+(De-)serializations for Rust's primitive types are already implemented, if it makes sense to implement them. For example, `isize` and `usize` aren't implemented, since they are inherently variable-sized and therefore can't have a portable byte representation. However, the other integral and floating point types are implemented, and if you just want to read/write some simple primitive types, using the `eread`/`ewrite` methods will Just Work™.
 
 ## Comparison to other crates
 
@@ -63,8 +63,8 @@ use endio::LERead;
 // Works with any object implementing std::io::Read.
 let mut reader = &b"\x2a\x01\x2c\xf3\xfe\xcf"[..];
 
-let a: u8   = reader.read().unwrap();     // Reads in little endian (specified by trait).
-let b: bool = reader.read().unwrap();     // Deserialization code is automatically inferred.
+let a: u8   = reader.eread().unwrap();     // Reads in little endian (specified by trait).
+let b: bool = reader.eread().unwrap();     // Deserialization code is automatically inferred.
 let c: u32  = reader.read_be().unwrap();  // Reads in forced big endian.
 
 // The results are already converted into the appropriate types and ready for use.
@@ -82,8 +82,8 @@ use endio::BEWrite;
 // Vec implements std::io::Write.
 let mut writer = vec![];
 
-writer.write(42u8);          // Directly specifying values works fine.
-writer.write(true);          // Everything is automatically converted to bytes.
+writer.ewrite(42u8);          // Directly specifying values works fine.
+writer.ewrite(true);          // Everything is automatically converted to bytes.
 writer.write_le(754187983);  // The trait endianness can be overwritten if necessary.
 
 // Done!
@@ -95,6 +95,6 @@ There are also examples on how to implement your own types.
 
 ## Getting started
 
-To conduct I/O you `use` the traits `BERead` & `BEWrite`, or `LERead` & `LEWrite`. Choose `BERead` & `BEWrite` for big endian I/O, and `LERead` & `LEWrite` for little endian I/O. This will give you the `read`/`write` methods on your structs. `read` returns values of your desired type, and `write` accepts values as a parameter. The deserialization to be used and the type to be returned are handled through type inference, so most of the time you won't even need to annotate the type explicitly.
+To conduct I/O you `use` the traits `BERead` & `BEWrite`, or `LERead` & `LEWrite`. Choose `BERead` & `BEWrite` for big endian I/O, and `LERead` & `LEWrite` for little endian I/O. This will give you the `eread`/`ewrite` methods on your structs. `eread` returns values of your desired type, and `ewrite` accepts values as a parameter. The deserialization to be used and the type to be returned are handled through type inference, so most of the time you won't even need to annotate the type explicitly.
 
 You can read and write your own types by implementing `Serialize`/`Deserialize`. See their documentation for details.

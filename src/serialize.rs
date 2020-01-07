@@ -34,9 +34,9 @@ use crate::{BigEndian, Endianness, EWrite, LittleEndian};
 			      bool: Serialize<E, W>,
 			      u32 : Serialize<E, W> {
 			fn serialize(self, writer: &mut W) -> Result<()> {
-				writer.write(self.a)?;
-				writer.write(self.b)?;
-				writer.write(self.c)
+				writer.ewrite(self.a)?;
+				writer.ewrite(self.b)?;
+				writer.ewrite(self.c)
 			}
 		}
 	}
@@ -46,7 +46,7 @@ use crate::{BigEndian, Endianness, EWrite, LittleEndian};
 
 		let mut writer = vec![];
 		let e = Example { a: 42, b: true, c: 754187983 };
-		writer.write(&e);
+		writer.ewrite(&e);
 
 		assert_eq!(writer, b"\x2a\x01\xcf\xfe\xf3\x2c");
 	}
@@ -54,7 +54,7 @@ use crate::{BigEndian, Endianness, EWrite, LittleEndian};
 	# 	use endio::BEWrite;
 	# 	let mut writer = vec![];
 	# 	let e = Example { a: 42, b: true, c: 754187983 };
-	# 	writer.write(&e);
+	# 	writer.ewrite(&e);
 	# 	assert_eq!(writer, b"\x2a\x01\x2c\xf3\xfe\xcf");
 	# }
 	```
@@ -115,7 +115,7 @@ pub trait Serialize<E: Endianness, W> {
 impl<E: Endianness, W: EWrite<E>, S: Copy+Serialize<E, W>> Serialize<E, W> for &[S] {
 	fn serialize(self, writer: &mut W) -> Res<()> {
 		for elem in self {
-			writer.write(*elem)?;
+			writer.ewrite(*elem)?;
 		}
 		Ok(())
 	}
@@ -124,7 +124,7 @@ impl<E: Endianness, W: EWrite<E>, S: Copy+Serialize<E, W>> Serialize<E, W> for &
 /// Writes the entire contents of the Vec.
 impl<E: Endianness, W: EWrite<E>, S: Copy+Serialize<E, W>> Serialize<E, W> for &Vec<S> {
 	fn serialize(self, writer: &mut W) -> Res<()> {
-		writer.write(self.as_slice())
+		writer.ewrite(self.as_slice())
 	}
 }
 
@@ -173,13 +173,13 @@ macro_rules! impl_int {
 				{
 					use crate::BEWrite;
 					let mut writer = vec![];
-					writer.write((integer as $t).to_be()).unwrap();
+					writer.ewrite((integer as $t).to_be()).unwrap();
 					assert_eq!(&writer[..], &bytes[..size_of::<$t>()]);
 				}
 				{
 					use crate::LEWrite;
 					let mut writer = vec![];
-					writer.write((integer as $t).to_le()).unwrap();
+					writer.ewrite((integer as $t).to_le()).unwrap();
 					assert_eq!(&writer[..], &bytes[..size_of::<$t>()]);
 				}
 			}
@@ -198,13 +198,13 @@ impl_int!(i128);
 
 impl<E: Endianness, W: EWrite<E>> Serialize<E, W> for f32 where u32: Serialize<E, W> {
 	fn serialize(self, writer: &mut W) -> Res<()> {
-		writer.write(self.to_bits())
+		writer.ewrite(self.to_bits())
 	}
 }
 
 impl<E: Endianness, W: EWrite<E>> Serialize<E, W> for f64 where u64: Serialize<E, W> {
 	fn serialize(self, writer: &mut W) -> Res<()> {
-		writer.write(self.to_bits())
+		writer.ewrite(self.to_bits())
 	}
 }
 
@@ -217,7 +217,7 @@ mod tests {
 		let data = b"\xba\xad\xba\xad";
 		use crate::LEWrite;
 		let mut writer = vec![];
-		writer.write(&[0xadbau16, 0xadbau16][..]).unwrap();
+		writer.ewrite(&[0xadbau16, 0xadbau16][..]).unwrap();
 		assert_eq!(writer, data);
 	}
 
@@ -226,7 +226,7 @@ mod tests {
 		let data = b"\xba\xad\xba\xad";
 		use crate::LEWrite;
 		let mut writer = vec![];
-		writer.write(&vec![0xadbau16, 0xadbau16]).unwrap();
+		writer.ewrite(&vec![0xadbau16, 0xadbau16]).unwrap();
 		assert_eq!(writer, data);
 	}
 
@@ -237,13 +237,13 @@ mod tests {
 		{
 			use crate::BEWrite;
 			let mut writer = vec![];
-			writer.write(val).unwrap();
+			writer.ewrite(val).unwrap();
 			assert_eq!(writer, data);
 		}
 		{
 			use crate::LEWrite;
 			let mut writer = vec![];
-			writer.write(val).unwrap();
+			writer.ewrite(val).unwrap();
 			assert_eq!(writer, data);
 		}
 	}
@@ -255,13 +255,13 @@ mod tests {
 		{
 			use crate::BEWrite;
 			let mut writer = vec![];
-			writer.write(val).unwrap();
+			writer.ewrite(val).unwrap();
 			assert_eq!(writer, data);
 		}
 		{
 			use crate::LEWrite;
 			let mut writer = vec![];
-			writer.write(val).unwrap();
+			writer.ewrite(val).unwrap();
 			assert_eq!(writer, data);
 		}
 	}
@@ -273,13 +273,13 @@ mod tests {
 		{
 			use crate::BEWrite;
 			let mut writer = vec![];
-			writer.write(val).unwrap();
+			writer.ewrite(val).unwrap();
 			assert_eq!(writer, data);
 		}
 		{
 			use crate::LEWrite;
 			let mut writer = vec![];
-			writer.write(val).unwrap();
+			writer.ewrite(val).unwrap();
 			assert_eq!(writer, data);
 		}
 	}
@@ -291,13 +291,13 @@ mod tests {
 		{
 			use crate::BEWrite;
 			let mut writer = vec![];
-			writer.write(val).unwrap();
+			writer.ewrite(val).unwrap();
 			assert_eq!(writer, data);
 		}
 		{
 			use crate::LEWrite;
 			let mut writer = vec![];
-			writer.write(val).unwrap();
+			writer.ewrite(val).unwrap();
 			assert_eq!(writer, data);
 		}
 	}
@@ -308,13 +308,13 @@ mod tests {
 		{
 			use crate::BEWrite;
 			let mut writer = vec![];
-			writer.write(642.613525390625f32).unwrap();
+			writer.ewrite(642.613525390625f32).unwrap();
 			assert_eq!(writer, data);
 		}
 		{
 			use crate::LEWrite;
 			let mut writer = vec![];
-			writer.write(1337.0083007812f32).unwrap();
+			writer.ewrite(1337.0083007812f32).unwrap();
 			assert_eq!(writer, data);
 		}
 	}
@@ -325,13 +325,13 @@ mod tests {
 		{
 			use crate::BEWrite;
 			let mut writer = vec![];
-			writer.write(1310.5201984283194f64).unwrap();
+			writer.ewrite(1310.5201984283194f64).unwrap();
 			assert_eq!(writer, data);
 		}
 		{
 			use crate::LEWrite;
 			let mut writer = vec![];
-			writer.write(1337.4199999955163f64).unwrap();
+			writer.ewrite(1337.4199999955163f64).unwrap();
 			assert_eq!(writer, data);
 		}
 	}
@@ -346,7 +346,7 @@ mod tests {
 
 			impl<E: Endianness, W: EWrite<E>> Serialize<E, W> for Test where u16: Serialize<E, W> {
 				fn serialize(self, writer: &mut W) -> Res<()> {
-					writer.write(self.a)?;
+					writer.ewrite(self.a)?;
 					Ok(())
 				}
 			}

@@ -36,9 +36,9 @@ use endio::LERead;
 
 let mut reader = &b"<binary content>"[..];
 
-let a: u16 = reader.read()?;
-let b: u32 = reader.read()?;
-let c: f64 = reader.read()?;
+let a: u16 = reader.eread()?;
+let b: u32 = reader.eread()?;
+let c: f64 = reader.eread()?;
 ```
 
 In most I/O scenarios, the endianness is fixed for the entirety of I/O, so being able to specify the endianness for all I/O operations can save a lot of typing. Often the type annotations above can also be left out, as the types can be inferred through other code.
@@ -75,7 +75,7 @@ struct Vector3(f32, f32, f32);
 
 let mut reader = &b"<binary content>"[..];
 
-let vector: Vector3 = reader.read()?;
+let vector: Vector3 = reader.eread()?;
 ```
 
 Being able to directly read and write complex types can save a lot of repetition and prevent bugs.
@@ -119,12 +119,12 @@ use endio::LERead;
 
 let mut reader = TcpStream::connect("example.com")?;
 
-let a: u32 = reader.read()?;
+let a: u32 = reader.eread()?;
 
 // direct access possible, no restrictions
 let addr = reader.peer_addr();
 
-let b: f64 = reader.read()?;
+let b: f64 = reader.eread()?;
 ```
 
 # Detailed comparison tables with various crates

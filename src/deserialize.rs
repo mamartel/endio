@@ -37,9 +37,9 @@ use crate::{BigEndian, ERead, Endianness, LittleEndian};
 			      u8  : Deserialize<E, R>,
 			      u32 : Deserialize<E, R> {
 			fn deserialize(reader: &mut R) -> Result<Self> {
-				let a = reader.read()?;
-				let b = reader.read()?;
-				let c = reader.read()?;
+				let a = reader.eread()?;
+				let b = reader.eread()?;
+				let c = reader.eread()?;
 				Ok(Example { a, b, c })
 			}
 		}
@@ -48,14 +48,14 @@ use crate::{BigEndian, ERead, Endianness, LittleEndian};
 	{
 		use endio::LERead;
 		let mut reader = &b"\x2a\x01\xcf\xfe\xf3\x2c"[..];
-		let e: Example = reader.read().unwrap();
+		let e: Example = reader.eread().unwrap();
 
 		assert_eq!(e, Example { a: 42, b: true, c: 754187983 });
 	}
 	# {
 	# 	use endio::BERead;
 	# 	let mut reader = &b"\x2a\x01\x2c\xf3\xfe\xcf"[..];
-	# 	let e: Example = reader.read().unwrap();
+	# 	let e: Example = reader.eread().unwrap();
 	#
 	# 	assert_eq!(e, Example { a: 42, b: true, c: 754187983 });
 	# }
@@ -169,13 +169,13 @@ macro_rules! impl_int {
 				{
 					use crate::BERead;
 					let mut reader = &bytes[..];
-					val = reader.read().unwrap();
+					val = reader.eread().unwrap();
 					assert_eq!(val, (integer as $t).to_be());
 				}
 				{
 					use crate::LERead;
 					let mut reader = &bytes[..];
-					val = reader.read().unwrap();
+					val = reader.eread().unwrap();
 					assert_eq!(val, (integer as $t).to_le());
 				}
 			}
@@ -194,14 +194,14 @@ impl_int!(i128);
 
 impl<E: Endianness, R: ERead<E>> Deserialize<E, R> for f32 where u32: Deserialize<E, R> {
 	fn deserialize(reader: &mut R) -> Res<Self> {
-		let ival: u32 = reader.read()?;
+		let ival: u32 = reader.eread()?;
 		Ok(Self::from_bits(ival))
 	}
 }
 
 impl<E: Endianness, R: ERead<E>> Deserialize<E, R> for f64 where u64: Deserialize<E, R> {
 	fn deserialize(reader: &mut R) -> Res<Self> {
-		let ival: u64 = reader.read()?;
+		let ival: u64 = reader.eread()?;
 		Ok(Self::from_bits(ival))
 	}
 }
@@ -218,13 +218,13 @@ mod tests {
 		{
 			use crate::BERead;
 			let mut reader = &data[..];
-			val = reader.read().unwrap();
+			val = reader.eread().unwrap();
 			assert_eq!(val, false);
 		}
 		{
 			use crate::LERead;
 			let mut reader = &data[..];
-			val = reader.read().unwrap();
+			val = reader.eread().unwrap();
 			assert_eq!(val, false);
 		}
 	}
@@ -236,13 +236,13 @@ mod tests {
 		{
 			use crate::BERead;
 			let mut reader = &data[..];
-			val = reader.read().unwrap();
+			val = reader.eread().unwrap();
 			assert_eq!(val, true);
 		}
 		{
 			use crate::LERead;
 			let mut reader = &data[..];
-			val = reader.read().unwrap();
+			val = reader.eread().unwrap();
 			assert_eq!(val, true);
 		}
 	}
@@ -254,13 +254,13 @@ mod tests {
 		{
 			use crate::BERead;
 			let mut reader = &data[..];
-			val = reader.read::<bool>().unwrap_err();
+			val = reader.eread::<bool>().unwrap_err();
 			assert_eq!(val.kind(), io::ErrorKind::InvalidData);
 		}
 		{
 			use crate::LERead;
 			let mut reader = &data[..];
-			val = reader.read::<bool>().unwrap_err();
+			val = reader.eread::<bool>().unwrap_err();
 			assert_eq!(val.kind(), io::ErrorKind::InvalidData);
 		}
 	}
@@ -272,13 +272,13 @@ mod tests {
 		{
 			use crate::BERead;
 			let mut reader = &data[..];
-			val = reader.read().unwrap();
+			val = reader.eread().unwrap();
 			assert_eq!(val, i8::min_value());
 		}
 		{
 			use crate::LERead;
 			let mut reader = &data[..];
-			val = reader.read().unwrap();
+			val = reader.eread().unwrap();
 			assert_eq!(val, i8::min_value());
 		}
 	}
@@ -290,13 +290,13 @@ mod tests {
 		{
 			use crate::BERead;
 			let mut reader = &data[..];
-			val = reader.read().unwrap();
+			val = reader.eread().unwrap();
 			assert_eq!(val, u8::max_value());
 		}
 		{
 			use crate::LERead;
 			let mut reader = &data[..];
-			val = reader.read().unwrap();
+			val = reader.eread().unwrap();
 			assert_eq!(val, u8::max_value());
 		}
 	}
@@ -308,13 +308,13 @@ mod tests {
 		{
 			use crate::BERead;
 			let mut reader = &data[..];
-			val = reader.read().unwrap();
+			val = reader.eread().unwrap();
 			assert_eq!(val, 642.613525390625);
 		}
 		{
 			use crate::LERead;
 			let mut reader = &data[..];
-			val = reader.read().unwrap();
+			val = reader.eread().unwrap();
 			assert_eq!(val, 1337.0083007812);
 		}
 	}
@@ -326,13 +326,13 @@ mod tests {
 		{
 			use crate::BERead;
 			let mut reader = &data[..];
-			val = reader.read().unwrap();
+			val = reader.eread().unwrap();
 			assert_eq!(val, 1310.5201984283194);
 		}
 		{
 			use crate::LERead;
 			let mut reader = &data[..];
-			val = reader.read().unwrap();
+			val = reader.eread().unwrap();
 			assert_eq!(val, 1337.4199999955163);
 		}
 	}
@@ -347,7 +347,7 @@ mod tests {
 
 			impl<E: Endianness, R: ERead<E>> Deserialize<E, R> for Test where u16: Deserialize<E, R> {
 				fn deserialize(reader: &mut R) -> Res<Self> {
-					let a = reader.read()?;
+					let a = reader.eread()?;
 					Ok(Test { a })
 				}
 			}
