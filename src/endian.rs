@@ -1,3 +1,6 @@
+use crate::{Deserialize, Serialize};
+use std::io;
+
 /**
 	Only necessary for custom (de-)serializations.
 
@@ -5,7 +8,10 @@
 
 	You can't implement this trait, it only exists as a trait bound.
 */
-pub trait Endianness: private::Sealed {}
+pub trait Endianness: Sized + private::Sealed {
+	fn serialize<W, S: Serialize<Self, W>>(value: S, writer: &mut W) -> io::Result<()>;
+	fn deserialize<R, D: Deserialize<Self, R>>(reader: &mut R) -> io::Result<D>;
+}
 
 /**
 	Only necessary for custom (de-)serializations.
@@ -20,8 +26,25 @@ pub struct BigEndian;
 */
 pub struct LittleEndian;
 
-impl Endianness for BigEndian {}
-impl Endianness for LittleEndian {}
+impl Endianness for BigEndian {
+	fn serialize<W, S: Serialize<Self, W>>(value: S, writer: &mut W) -> io::Result<()> {
+		value.serialize_be(writer)
+	}
+
+	fn deserialize<R, D: Deserialize<Self, R>>(reader: &mut R) -> io::Result<D> {
+		D::deserialize_be(reader)
+	}
+}
+
+impl Endianness for LittleEndian {
+	fn serialize<W, S: Serialize<Self, W>>(value: S, writer: &mut W) -> io::Result<()> {
+		value.serialize_le(writer)
+	}
+
+	fn deserialize<R, D: Deserialize<Self, R>>(reader: &mut R) -> io::Result<D> {
+		D::deserialize_le(reader)
+	}
+}
 
 // ensures no one else implements the trait
 mod private {

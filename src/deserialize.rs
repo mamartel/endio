@@ -3,7 +3,7 @@ use std::io::Read;
 use std::io::Result as Res;
 use std::mem::size_of;
 
-use crate::{BigEndian, ERead, Endianness, LittleEndian};
+use crate::{ERead, Endianness};
 
 /**
 	Implement this for your types to be able to `read` them.
@@ -32,10 +32,7 @@ use crate::{BigEndian, ERead, Endianness, LittleEndian};
 		use std::io::Result;
 		use endio::{Deserialize, Endianness, ERead};
 
-		impl<E: Endianness, R: ERead<E>> Deserialize<E, R> for Example
-			where bool: Deserialize<E, R>,
-			      u8  : Deserialize<E, R>,
-			      u32 : Deserialize<E, R> {
+		impl<E: Endianness, R: ERead<E>> Deserialize<E, R> for Example {
 			fn deserialize(reader: &mut R) -> Result<Self> {
 				let a = reader.eread()?;
 				let b = reader.eread()?;
@@ -109,7 +106,20 @@ use crate::{BigEndian, ERead, Endianness, LittleEndian};
 */
 pub trait Deserialize<E: Endianness, R>: Sized {
 	/// Deserializes the type by reading from the reader.
-	fn deserialize(reader: &mut R) -> Res<Self>;
+	/// Implement ONLY this method if your code for both endianness is the same.
+	fn deserialize(_reader: &mut R) -> Res<Self> {
+		unreachable!();
+	}
+
+	/// Deserializes the type by reading from the reader using Big-endian encoding.
+	fn deserialize_be(reader: &mut R) -> Res<Self> {
+		Self::deserialize(reader)
+	}
+
+	/// Deserializes the type by reading from the reader using Little-endian encoding.
+	fn deserialize_le(reader: &mut R) -> Res<Self> {
+		Self::deserialize(reader)
+	}
 }
 
 /// Reads a bool by reading a byte, returning false for 0, true for 1, and an `InvalidData` error for any other value.
@@ -143,16 +153,14 @@ impl<E: Endianness, R: Read> Deserialize<E, R> for u8 {
 
 macro_rules! impl_int {
 	($t:ident) => {
-		impl<R: Read> Deserialize<BigEndian, R> for $t {
-			fn deserialize(reader: &mut R) -> Res<Self> {
+		impl<E: Endianness, R: Read> Deserialize<E, R> for $t {
+			fn deserialize_be(reader: &mut R) -> Res<Self> {
 				let mut buf = [0; size_of::<Self>()];
 				reader.read_exact(&mut buf)?;
 				Ok(Self::from_be_bytes(buf))
 			}
-		}
 
-		impl<R: Read> Deserialize<LittleEndian, R> for $t {
-			fn deserialize(reader: &mut R) -> Res<Self> {
+			fn deserialize_le(reader: &mut R) -> Res<Self> {
 				let mut buf = [0; size_of::<Self>()];
 				reader.read_exact(&mut buf)?;
 				Ok(Self::from_le_bytes(buf))
@@ -192,14 +200,14 @@ impl_int!(i32);
 impl_int!(i64);
 impl_int!(i128);
 
-impl<E: Endianness, R: ERead<E>> Deserialize<E, R> for f32 where u32: Deserialize<E, R> {
+impl<E: Endianness, R: ERead<E>> Deserialize<E, R> for f32 {
 	fn deserialize(reader: &mut R) -> Res<Self> {
 		let ival: u32 = reader.eread()?;
 		Ok(Self::from_bits(ival))
 	}
 }
 
-impl<E: Endianness, R: ERead<E>> Deserialize<E, R> for f64 where u64: Deserialize<E, R> {
+impl<E: Endianness, R: ERead<E>> Deserialize<E, R> for f64 {
 	fn deserialize(reader: &mut R) -> Res<Self> {
 		let ival: u64 = reader.eread()?;
 		Ok(Self::from_bits(ival))
@@ -344,8 +352,8 @@ mod tests {
 		}
 		{
 			use crate::{Deserialize, Endianness, ERead};
-
-			impl<E: Endianness, R: ERead<E>> Deserialize<E, R> for Test where u16: Deserialize<E, R> {
+			
+			impl<E: Endianness, R: ERead<E>> Deserialize<E, R> for Test {
 				fn deserialize(reader: &mut R) -> Res<Self> {
 					let a = reader.eread()?;
 					Ok(Test { a })

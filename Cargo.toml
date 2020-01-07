@@ -1,6 +1,6 @@
 [package]
 name = "endio"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["lcdr"]
 edition = "2018"
 description = "Simple reading & writing of binary data, extensible and ergonomic."

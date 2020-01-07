@@ -24,17 +24,17 @@ use crate::{BigEndian, Deserialize, Endianness, LittleEndian};
 	assert_eq!(c, 754187983);
 	```
 */
-pub trait ERead<E: Endianness>: Sized {
+pub trait ERead<E: Endianness>: Sized + Read {
 	/**
 		Reads a `Deserialize` from the reader, in the reader's endianness.
 
 		What's actually read is up to the implementation of the `Deserialize`.
 	*/
-	fn eread   <D: Deserialize<E,            Self>>(&mut self) -> Res<D> { D::deserialize(self) }
+	fn eread   <D: Deserialize<E,            Self>>(&mut self) -> Res<D> { E::deserialize(self) }
 	/// Reads in forced big endian.
-	fn read_be<D: Deserialize<BigEndian,    Self>>(&mut self) -> Res<D> { D::deserialize(self) }
+	fn read_be<D: Deserialize<BigEndian,    Self>>(&mut self) -> Res<D> { BigEndian::deserialize(self) }
 	/// Reads in forced little endian.
-	fn read_le<D: Deserialize<LittleEndian, Self>>(&mut self) -> Res<D> { D::deserialize(self) }
+	fn read_le<D: Deserialize<LittleEndian, Self>>(&mut self) -> Res<D> { LittleEndian::deserialize(self) }
 }
 
 /**
@@ -45,9 +45,9 @@ pub trait ERead<E: Endianness>: Sized {
 	This exists solely to make `use` notation work. See `ERead` for documentation.
 */
 pub trait BERead: Sized {
-	fn eread   <D: Deserialize<BigEndian,    Self>>(&mut self) -> Res<D> { D::deserialize(self) }
-	fn read_be<D: Deserialize<BigEndian,    Self>>(&mut self) -> Res<D> { D::deserialize(self) }
-	fn read_le<D: Deserialize<LittleEndian, Self>>(&mut self) -> Res<D> { D::deserialize(self) }
+	fn eread   <D: Deserialize<BigEndian,    Self>>(&mut self) -> Res<D> { BigEndian::deserialize(self) }
+	fn read_be<D: Deserialize<BigEndian,    Self>>(&mut self) -> Res<D> { BigEndian::deserialize(self) }
+	fn read_le<D: Deserialize<LittleEndian, Self>>(&mut self) -> Res<D> { LittleEndian::deserialize(self) }
 }
 
 /**
@@ -58,9 +58,9 @@ pub trait BERead: Sized {
 	This exists solely to make `use` notation work. See `ERead` for documentation.
 */
 pub trait LERead: Sized {
-	fn eread   <D: Deserialize<LittleEndian, Self>>(&mut self) -> Res<D> { D::deserialize(self) }
-	fn read_be<D: Deserialize<BigEndian,    Self>>(&mut self) -> Res<D> { D::deserialize(self) }
-	fn read_le<D: Deserialize<LittleEndian, Self>>(&mut self) -> Res<D> { D::deserialize(self) }
+	fn eread   <D: Deserialize<LittleEndian, Self>>(&mut self) -> Res<D> { LittleEndian::deserialize(self) }
+	fn read_be<D: Deserialize<BigEndian,    Self>>(&mut self) -> Res<D> { BigEndian::deserialize(self) }
+	fn read_le<D: Deserialize<LittleEndian, Self>>(&mut self) -> Res<D> { LittleEndian::deserialize(self) }
 }
 
 impl<R: Read, E: Endianness> ERead<E> for R {}

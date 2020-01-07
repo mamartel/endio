@@ -1,7 +1,7 @@
 use std::io::Result as Res;
 use std::io::Write;
 
-use crate::{BigEndian, Endianness, EWrite, LittleEndian};
+use crate::{Endianness, EWrite};
 
 /**
 	Implement this for your types to be able to `write` them.
@@ -26,13 +26,10 @@ use crate::{BigEndian, Endianness, EWrite, LittleEndian};
 		c: u32,
 	}
 	{
-		use std::io::Result;
+		use std::io::{Result, Write};
 		use endio::{Endianness, EWrite, Serialize};
 
-		impl<E: Endianness, W: EWrite<E>> Serialize<E, W> for &Example
-			where u8  : Serialize<E, W>,
-			      bool: Serialize<E, W>,
-			      u32 : Serialize<E, W> {
+		impl<E: Endianness, W: Write + EWrite<E>> Serialize<E, W> for &Example {
 			fn serialize(self, writer: &mut W) -> Result<()> {
 				writer.ewrite(self.a)?;
 				writer.ewrite(self.b)?;
@@ -104,10 +101,22 @@ use crate::{BigEndian, Endianness, EWrite, LittleEndian};
 	}
 	```
 */
+pub trait Serialize<E: Endianness, W>: Sized {
+	/// Serializes the type by writing to the writer using Big-endian.
+	/// Implement ONLY this method if your code for both endianness is the same.
+	fn serialize(self, _writer: &mut W) -> Res<()> {
+		unreachable!();
+	}
 
-pub trait Serialize<E: Endianness, W> {
-	/// Serializes the type by writing to the writer.
-	fn serialize(self, writer: &mut W) -> Res<()>;
+	/// Serializes the type by writing to the writer using Big-endian.
+	fn serialize_be(self, writer: &mut W) -> Res<()> {
+		self.serialize(writer)
+	}
+
+	/// Serializes the type by writing to the writer using Little-endian.
+	fn serialize_le(self, writer: &mut W) -> Res<()> {
+		self.serialize(writer)
+	}
 }
 
 // todo[specialization]: specialize for &[u8] (std::io::Write::write_all)
@@ -149,14 +158,12 @@ impl<E: Endianness, W: Write> Serialize<E, W> for i8 {
 
 macro_rules! impl_int {
 	($t:ident) => {
-		impl<W: Write> Serialize<BigEndian, W> for $t {
-			fn serialize(self, writer: &mut W) -> Res<()> {
+		impl<E: Endianness, W: Write> Serialize<E, W> for $t {
+			fn serialize_be(self, writer: &mut W) -> Res<()> {
 				writer.write_all(&self.to_be_bytes())
 			}
-		}
 
-		impl<W: Write> Serialize<LittleEndian, W> for $t {
-			fn serialize(self, writer: &mut W) -> Res<()> {
+			fn serialize_le(self, writer: &mut W) -> Res<()> {
 				writer.write_all(&self.to_le_bytes())
 			}
 		}
